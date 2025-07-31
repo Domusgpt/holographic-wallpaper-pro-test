@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Wallpaper Pro - WORKING VERSION</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ffff;
+            --primary-dark: #00bfbf;
+            --bg-dark: #000;
+            --bg-panel: rgba(0, 10, 20, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #b0eaff;
+            --border: rgba(0, 255, 255, 0.3);
+            --shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        .editor-panel {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            width: 320px;
+            max-height: calc(100vh - 40px);
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .editor-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .minimize-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .editor-content {
+            padding: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group select {
+            padding: 8px;
+            background: rgba(20, 30, 50, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+        }
+
+        .value-display {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover,
+        .preset-btn.active {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .preset-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        .error {
+            color: #ff4444;
+            border-color: #ff4444;
+        }
+
+        .success {
+            color: #44ff44;
+            border-color: #44ff44;
+        }
+
+        @media (max-width: 768px) {
+            .editor-panel {
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 60vh;
+                border-radius: 12px 12px 0 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="editor-panel">
+        <div class="editor-header">
+            <h1>HOLOGRAPHIC PRO</h1>
+            <button class="minimize-btn" onclick="togglePanel()">−</button>
+        </div>
+        
+        <div class="editor-content">
+            <!-- Presets -->
+            <div class="control-group">
+                <label>Quick Presets</label>
+                <div class="preset-grid" id="presetGrid">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+            
+            <!-- Geometry -->
+            <div class="control-group">
+                <label>Geometry Type</label>
+                <select id="geometryType">
+                    <option value="0">Wave Pattern</option>
+                    <option value="1">Spiral Galaxy</option>
+                    <option value="2">Grid Matrix</option>
+                    <option value="3">Particle Field</option>
+                    <option value="4">Crystal Lattice</option>
+                    <option value="5">Plasma Storm</option>
+                </select>
+            </div>
+            
+            <!-- Speed -->
+            <div class="control-group">
+                <label>Animation Speed</label>
+                <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1.0">
+                <div class="value-display" id="speedValue">1.0</div>
+            </div>
+            
+            <!-- Density -->
+            <div class="control-group">
+                <label>Pattern Density</label>
+                <input type="range" id="density" min="0.5" max="3" step="0.1" value="1.0">
+                <div class="value-display" id="densityValue">1.0</div>
+            </div>
+            
+            <!-- Hue -->
+            <div class="control-group">
+                <label>Color Hue</label>
+                <input type="range" id="hue" min="0" max="360" step="1" value="180">
+                <div class="value-display" id="hueValue">180°</div>
+            </div>
+            
+            <!-- Saturation -->
+            <div class="control-group">
+                <label>Color Saturation</label>
+                <input type="range" id="saturation" min="0" max="1" step="0.05" value="0.8">
+                <div class="value-display" id="saturationValue">0.8</div>
+            </div>
+            
+            <!-- Intensity -->
+            <div class="control-group">
+                <label>Brightness</label>
+                <input type="range" id="intensity" min="0.1" max="2" step="0.1" value="0.8">
+                <div class="value-display" id="intensityValue">0.8</div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="buttons">
+                <button class="btn" onclick="randomize()">Random</button>
+                <button class="btn" onclick="exportJSON()">Export</button>
+                <button class="btn" onclick="exportImage()">PNG</button>
+                <button class="btn" onclick="toggleFullscreen()">Full</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status" id="status">Initializing...</div>
+
+    <script>
+        class HolographicWallpaper {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.status = document.getElementById('status');
+                this.gl = null;
+                this.program = null;
+                this.uniforms = {};
+                
+                this.config = {
+                    geometry: 0,
+                    speed: 1.0,
+                    density: 1.0,
+                    hue: 180,
+                    saturation: 0.8,
+                    intensity: 0.8
+                };
+                
+                this.mouse = { x: 0.5, y: 0.5 };
+                this.time = 0;
+                this.animationId = null;
+                
+                this.presets = [
+                    { name: "Cyber", geometry: 0, speed: 1.5, density: 2.0, hue: 180, saturation: 0.9, intensity: 1.0, bg: "linear-gradient(45deg, #00ffff, #0080ff)" },
+                    { name: "Fire", geometry: 1, speed: 0.8, density: 1.5, hue: 20, saturation: 1.0, intensity: 1.0, bg: "linear-gradient(45deg, #ff4400, #ff8800)" },
+                    { name: "Ocean", geometry: 0, speed: 0.5, density: 1.2, hue: 200, saturation: 0.8, intensity: 0.7, bg: "linear-gradient(45deg, #0066ff, #0099ff)" },
+                    { name: "Forest", geometry: 2, speed: 0.3, density: 1.0, hue: 120, saturation: 0.7, intensity: 0.6, bg: "linear-gradient(45deg, #228833, #66bb44)" },
+                    { name: "Purple", geometry: 3, speed: 1.2, density: 1.8, hue: 280, saturation: 0.9, intensity: 0.9, bg: "linear-gradient(45deg, #8844ff, #bb66ff)" },
+                    { name: "Gold", geometry: 4, speed: 0.7, density: 1.3, hue: 45, saturation: 0.8, intensity: 0.8, bg: "linear-gradient(45deg, #ffaa00, #ffdd44)" }
+                ];
+                
+                this.init();
+            }
+            
+            async init() {
+                try {
+                    this.setupCanvas();
+                    await this.initWebGL();
+                    this.setupShaders();
+                    this.setupGeometry();
+                    this.setupControls();
+                    this.setupPresets();
+                    this.setupMouse();
+                    this.startRender();
+                    this.setStatus('WebGL initialized successfully', 'success');
+                } catch (error) {
+                    this.setStatus('Error: ' + error.message, 'error');
+                    console.error('Initialization failed:', error);
+                }
+            }
+            
+            setupCanvas() {
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                this.canvas.width = window.innerWidth * dpr;
+                this.canvas.height = window.innerHeight * dpr;
+                this.canvas.style.width = window.innerWidth + 'px';
+                this.canvas.style.height = window.innerHeight + 'px';
+                
+                if (this.gl) {
+                    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                }
+            }
+            
+            async initWebGL() {
+                this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+                
+                if (!this.gl) {
+                    throw new Error('WebGL not supported');
+                }
+                
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                this.gl.clearColor(0, 0, 0, 1);
+                
+                // Enable blending for better effects
+                this.gl.enable(this.gl.BLEND);
+                this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+            }
+            
+            setupShaders() {
+                const vertexShader = `
+                    attribute vec2 a_position;
+                    varying vec2 v_uv;
+                    void main() {
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                        v_uv = a_position * 0.5 + 0.5;
+                    }
+                `;
+                
+                const fragmentShader = `
+                    precision highp float;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    uniform vec2 u_mouse;
+                    uniform float u_geometry;
+                    uniform float u_speed;
+                    uniform float u_density;
+                    uniform float u_hue;
+                    uniform float u_saturation;
+                    uniform float u_intensity;
+                    
+                    varying vec2 v_uv;
+                    
+                    vec3 hsv2rgb(vec3 c) {
+                        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+                    }
+                    
+                    float noise(vec2 p) {
+                        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+                    }
+                    
+                    float wave(vec2 uv, float time) {
+                        return sin(uv.x * 10.0 * u_density + time * u_speed) * 
+                               sin(uv.y * 8.0 * u_density + time * u_speed * 0.7) * 0.5 + 0.5;
+                    }
+                    
+                    float spiral(vec2 uv, float time) {
+                        vec2 center = uv - 0.5;
+                        float angle = atan(center.y, center.x);
+                        float radius = length(center);
+                        return sin(angle * 5.0 * u_density + radius * 20.0 * u_density - time * u_speed * 3.0) * 0.5 + 0.5;
+                    }
+                    
+                    float grid(vec2 uv, float time) {
+                        vec2 gd = fract(uv * 10.0 * u_density + time * u_speed * 0.1);
+                        return max(
+                            step(0.9, gd.x) + step(gd.x, 0.1),
+                            step(0.9, gd.y) + step(gd.y, 0.1)
+                        );
+                    }
+                    
+                    float particles(vec2 uv, float time) {
+                        float result = 0.0;
+                        for (int i = 0; i < 8; i++) {
+                            vec2 pos = vec2(
+                                sin(time * u_speed + float(i) * 0.5) * 0.3 + 0.5,
+                                cos(time * u_speed * 1.1 + float(i) * 0.7) * 0.3 + 0.5
+                            );
+                            float dist = length(uv - pos);
+                            result += 1.0 / (1.0 + dist * 50.0 * u_density);
+                        }
+                        return result;
+                    }
+                    
+                    float crystal(vec2 uv, float time) {
+                        vec2 p = uv * u_density;
+                        float pattern = 0.0;
+                        for (int i = 0; i < 3; i++) {
+                            p = abs(p) / dot(p, p) - 0.9;
+                            pattern += exp(-length(p));
+                        }
+                        return pattern * 0.1;
+                    }
+                    
+                    float plasma(vec2 uv, float time) {
+                        float x = uv.x;
+                        float y = uv.y;
+                        float plasma = sin(x * 10.0 * u_density + time * u_speed) + 
+                                      sin(y * 10.0 * u_density + time * u_speed) + 
+                                      sin((x + y) * 10.0 * u_density + time * u_speed) + 
+                                      sin(sqrt(x*x + y*y) * 10.0 * u_density + time * u_speed);
+                        return plasma * 0.25 + 0.5;
+                    }
+                    
+                    void main() {
+                        vec2 uv = v_uv;
+                        vec2 mouse = u_mouse;
+                        float time = u_time * 0.001;
+                        
+                        float pattern = 0.0;
+                        int geom = int(u_geometry + 0.5);
+                        
+                        if (geom == 0) pattern = wave(uv, time);
+                        else if (geom == 1) pattern = spiral(uv, time);
+                        else if (geom == 2) pattern = grid(uv, time);
+                        else if (geom == 3) pattern = particles(uv, time);
+                        else if (geom == 4) pattern = crystal(uv, time);
+                        else pattern = plasma(uv, time);
+                        
+                        // Mouse interaction
+                        float mouseDist = length(uv - mouse);
+                        pattern += exp(-mouseDist * 5.0) * 0.3;
+                        
+                        // Color
+                        float hue = u_hue / 360.0 + pattern * 0.1 + time * 0.05;
+                        vec3 color = hsv2rgb(vec3(hue, u_saturation, pattern * u_intensity));
+                        
+                        // Add some glow
+                        color += vec3(pattern * 0.2) * u_intensity;
+                        
+                        gl_FragColor = vec4(color, 1.0);
+                    }
+                `;
+                
+                this.program = this.createProgram(vertexShader, fragmentShader);
+                this.gl.useProgram(this.program);
+                
+                // Get uniform locations
+                this.uniforms = {
+                    resolution: this.gl.getUniformLocation(this.program, 'u_resolution'),
+                    time: this.gl.getUniformLocation(this.program, 'u_time'),
+                    mouse: this.gl.getUniformLocation(this.program, 'u_mouse'),
+                    geometry: this.gl.getUniformLocation(this.program, 'u_geometry'),
+                    speed: this.gl.getUniformLocation(this.program, 'u_speed'),
+                    density: this.gl.getUniformLocation(this.program, 'u_density'),
+                    hue: this.gl.getUniformLocation(this.program, 'u_hue'),
+                    saturation: this.gl.getUniformLocation(this.program, 'u_saturation'),
+                    intensity: this.gl.getUniformLocation(this.program, 'u_intensity')
+                };
+            }
+            
+            createProgram(vertexSource, fragmentSource) {
+                const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexSource);
+                const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentSource);
+                
+                const program = this.gl.createProgram();
+                this.gl.attachShader(program, vertexShader);
+                this.gl.attachShader(program, fragmentShader);
+                this.gl.linkProgram(program);
+                
+                if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+                    const error = this.gl.getProgramInfoLog(program);
+                    this.gl.deleteProgram(program);
+                    throw new Error('Program link failed: ' + error);
+                }
+                
+                return program;
+            }
+            
+            createShader(type, source) {
+                const shader = this.gl.createShader(type);
+                this.gl.shaderSource(shader, source);
+                this.gl.compileShader(shader);
+                
+                if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+                    const error = this.gl.getShaderInfoLog(shader);
+                    this.gl.deleteShader(shader);
+                    throw new Error('Shader compile failed: ' + error);
+                }
+                
+                return shader;
+            }
+            
+            setupGeometry() {
+                const positions = new Float32Array([
+                    -1, -1,  1, -1,  -1, 1,  1, 1
+                ]);
+                
+                const buffer = this.gl.createBuffer();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+                
+                const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
+                this.gl.enableVertexAttribArray(positionLocation);
+                this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+            }
+            
+            setupControls() {
+                const controls = ['geometryType', 'speed', 'density', 'hue', 'saturation', 'intensity'];
+                
+                controls.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateConfig());
+                    }
+                });
+                
+                this.updateConfig();
+            }
+            
+            setupPresets() {
+                const grid = document.getElementById('presetGrid');
+                grid.innerHTML = '';
+                
+                this.presets.forEach((preset, index) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'preset-btn';
+                    btn.style.background = preset.bg;
+                    btn.innerHTML = `<div class="preset-name">${preset.name}</div>`;
+                    
+                    btn.addEventListener('click', () => {
+                        this.applyPreset(preset);
+                        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                    
+                    grid.appendChild(btn);
+                });
+            }
+            
+            applyPreset(preset) {
+                this.config = { ...preset };
+                
+                // Update UI controls
+                document.getElementById('geometryType').value = preset.geometry;
+                document.getElementById('speed').value = preset.speed;
+                document.getElementById('density').value = preset.density;
+                document.getElementById('hue').value = preset.hue;
+                document.getElementById('saturation').value = preset.saturation;
+                document.getElementById('intensity').value = preset.intensity;
+                
+                this.updateDisplayValues();
+                this.setStatus(`Applied preset: ${preset.name}`, 'success');
+            }
+            
+            updateConfig() {
+                this.config.geometry = parseFloat(document.getElementById('geometryType').value);
+                this.config.speed = parseFloat(document.getElementById('speed').value);
+                this.config.density = parseFloat(document.getElementById('density').value);
+                this.config.hue = parseFloat(document.getElementById('hue').value);
+                this.config.saturation = parseFloat(document.getElementById('saturation').value);
+                this.config.intensity = parseFloat(document.getElementById('intensity').value);
+                
+                this.updateDisplayValues();
+            }
+            
+            updateDisplayValues() {
+                document.getElementById('speedValue').textContent = this.config.speed.toFixed(1);
+                document.getElementById('densityValue').textContent = this.config.density.toFixed(1);
+                document.getElementById('hueValue').textContent = this.config.hue + '°';
+                document.getElementById('saturationValue').textContent = this.config.saturation.toFixed(2);
+                document.getElementById('intensityValue').textContent = this.config.intensity.toFixed(1);
+            }
+            
+            setupMouse() {
+                this.canvas.addEventListener('mousemove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.mouse.x = (e.clientX - rect.left) / rect.width;
+                    this.mouse.y = 1 - (e.clientY - rect.top) / rect.height;
+                });
+                
+                // Touch support
+                this.canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const rect = this.canvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    this.mouse.x = (touch.clientX - rect.left) / rect.width;
+                    this.mouse.y = 1 - (touch.clientY - rect.top) / rect.height;
+                }, { passive: false });
+            }
+            
+            startRender() {
+                const render = (timestamp) => {
+                    this.time = timestamp;
+                    this.render();
+                    this.animationId = requestAnimationFrame(render);
+                };
+                this.animationId = requestAnimationFrame(render);
+            }
+            
+            render() {
+                if (!this.gl || !this.program) return;
+                
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+                
+                // Set uniforms
+                this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
+                this.gl.uniform1f(this.uniforms.time, this.time);
+                this.gl.uniform2f(this.uniforms.mouse, this.mouse.x, this.mouse.y);
+                this.gl.uniform1f(this.uniforms.geometry, this.config.geometry);
+                this.gl.uniform1f(this.uniforms.speed, this.config.speed);
+                this.gl.uniform1f(this.uniforms.density, this.config.density);
+                this.gl.uniform1f(this.uniforms.hue, this.config.hue);
+                this.gl.uniform1f(this.uniforms.saturation, this.config.saturation);
+                this.gl.uniform1f(this.uniforms.intensity, this.config.intensity);
+                
+                // Draw
+                this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            }
+            
+            setStatus(message, type = '') {
+                this.status.textContent = message;
+                this.status.className = 'status ' + type;
+                if (type) {
+                    setTimeout(() => {
+                        this.status.className = 'status';
+                    }, 3000);
+                }
+            }
+            
+            exportJSON() {
+                const config = {
+                    version: "1.0",
+                    type: "holographic-theme",
+                    name: "Custom Theme " + new Date().toLocaleDateString(),
+                    config: this.config,
+                    timestamp: Date.now()
+                };
+                
+                const json = JSON.stringify(config, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'holographic-theme.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                this.setStatus('Theme exported as JSON', 'success');
+            }
+            
+            exportImage() {
+                try {
+                    const link = document.createElement('a');
+                    link.download = 'holographic-wallpaper.png';
+                    link.href = this.canvas.toDataURL('image/png');
+                    link.click();
+                    this.setStatus('Image exported as PNG', 'success');
+                } catch (error) {
+                    this.setStatus('Export failed: ' + error.message, 'error');
+                }
+            }
+            
+            randomize() {
+                document.getElementById('geometryType').value = Math.floor(Math.random() * 6);
+                document.getElementById('speed').value = (0.3 + Math.random() * 2.5).toFixed(1);
+                document.getElementById('density').value = (0.5 + Math.random() * 2.5).toFixed(1);
+                document.getElementById('hue').value = Math.floor(Math.random() * 360);
+                document.getElementById('saturation').value = (0.5 + Math.random() * 0.5).toFixed(2);
+                document.getElementById('intensity').value = (0.5 + Math.random() * 1.5).toFixed(1);
+                
+                this.updateConfig();
+                this.setStatus('Parameters randomized', 'success');
+            }
+            
+            destroy() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                if (this.gl && this.program) {
+                    this.gl.deleteProgram(this.program);
+                }
+            }
+        }
+        
+        // Global functions
+        let app = null;
+        
+        function togglePanel() {
+            const panel = document.querySelector('.editor-panel');
+            const btn = document.querySelector('.minimize-btn');
+            if (panel.style.transform === 'translateX(100%)') {
+                panel.style.transform = 'translateX(0)';
+                btn.textContent = '−';
+            } else {
+                panel.style.transform = 'translateX(100%)';
+                btn.textContent = '+';
+            }
+        }
+        
+        function randomize() {
+            if (app) app.randomize();
+        }
+        
+        function exportJSON() {
+            if (app) app.exportJSON();
+        }
+        
+        function exportImage() {
+            if (app) app.exportImage();
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(console.error);
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            app = new HolographicWallpaper();
+        });
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (app) app.destroy();
+        });
+    </script>
+</body>
+</html>
