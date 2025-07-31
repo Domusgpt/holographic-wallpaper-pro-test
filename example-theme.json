@@ -1,0 +1,171 @@
+{
+  "version": "1.0",
+  "type": "holographic-theme",
+  "name": "Cyberpunk Dream",
+  "metadata": {
+    "author": "Holographic Systems",
+    "description": "A futuristic cyberpunk-inspired theme with neon colors and hypercube geometry. Perfect for gaming websites, tech companies, and futuristic user interfaces.",
+    "price": 9.99,
+    "created": "2024-01-15T10:30:00.000Z",
+    "tags": ["cyberpunk", "neon", "futuristic", "gaming", "tech"],
+    "category": "Technology",
+    "difficulty": "Beginner",
+    "license": "Commercial",
+    "preview": "linear-gradient(45deg, #ff006f, #00ffff)",
+    "screenshots": [
+      "cyberpunk-dream-1.jpg",
+      "cyberpunk-dream-2.jpg",
+      "cyberpunk-dream-mobile.jpg"
+    ],
+    "compatibility": {
+      "webgl1": true,
+      "webgl2": true,
+      "mobile": true,
+      "audioReactive": true
+    },
+    "performance": {
+      "complexity": "Medium",
+      "gpuIntensive": false,
+      "recommendedSpecs": "Mid-range GPU, 4GB RAM"
+    }
+  },
+  "config": {
+    "geometry": {
+      "primary": 1,
+      "secondary": 0,
+      "blendAmount": 25,
+      "density": 2.0,
+      "complexity": 4,
+      "morph": 0.6,
+      "chaos": 0.4
+    },
+    "colors": {
+      "mode": "hsl",
+      "primaryHue": 300,
+      "secondaryHue": 180,
+      "saturation": 0.9,
+      "brightness": 0.8,
+      "glow": 0.7,
+      "colorSpeed": 0.3
+    },
+    "animation": {
+      "easing": "easeInOutQuad",
+      "baseSpeed": 1.2,
+      "rotationX": 0.8,
+      "rotationY": 0.6,
+      "rotationZ": 0.4,
+      "pulse": 0.7,
+      "waveAmplitude": 0.2,
+      "autoRotate": true,
+      "breathingEffect": false,
+      "particleMode": false
+    },
+    "interaction": {
+      "mouseReactivity": 1.2,
+      "touchSensitivity": 1.0,
+      "scrollParallax": 0.6,
+      "audioReactive": true,
+      "gyroEnabled": true,
+      "clickRipples": true,
+      "magneticMouse": true,
+      "bassResponse": 1.5,
+      "midResponse": 1.0,
+      "highResponse": 1.2
+    }
+  },
+  "usage": {
+    "webEmbed": {
+      "html": "<!-- Cyberpunk Dream Theme Embed -->\n<div id=\"holographic-container\" style=\"width: 100%; height: 100vh;\">\n    <canvas id=\"holographic-canvas\"></canvas>\n</div>",
+      "css": ".holographic-container { position: relative; overflow: hidden; }",
+      "js": "// Theme configuration and initialization code"
+    },
+    "examples": [
+      {
+        "title": "Gaming Website Header",
+        "description": "Use as an animated background for gaming site headers",
+        "code": "<div class=\"hero-section\" style=\"background: holographic-cyberpunk;\">...</div>"
+      },
+      {
+        "title": "Login Screen Background",
+        "description": "Perfect for futuristic login and authentication screens",
+        "implementation": "fullscreen"
+      },
+      {
+        "title": "Loading Animation",
+        "description": "Use during app loading sequences for immersive experience",
+        "implementation": "overlay"
+      }
+    ]
+  },
+  "customization": {
+    "recommended": [
+      {
+        "parameter": "colors.primaryHue",
+        "suggestion": "Try values between 280-320 for different neon effects"
+      },
+      {
+        "parameter": "animation.baseSpeed",
+        "suggestion": "Increase to 1.5-2.0 for more dynamic movement"
+      },
+      {
+        "parameter": "geometry.density",
+        "suggestion": "Lower to 1.5 for better mobile performance"
+      }
+    ],
+    "variations": [
+      {
+        "name": "Subtle Cyberpunk",
+        "changes": {
+          "animation.baseSpeed": 0.6,
+          "colors.brightness": 0.6,
+          "geometry.chaos": 0.2
+        }
+      },
+      {
+        "name": "Intense Cyberpunk",
+        "changes": {
+          "animation.baseSpeed": 1.8,
+          "colors.glow": 0.9,
+          "geometry.chaos": 0.7,
+          "animation.pulse": 1.0
+        }
+      }
+    ]
+  },
+  "monetization": {
+    "pricing": {
+      "personal": 4.99,
+      "commercial": 9.99,
+      "extended": 24.99
+    },
+    "licenses": {
+      "personal": "Use in personal projects and websites",
+      "commercial": "Use in commercial projects, up to 1M page views",
+      "extended": "Unlimited commercial use, resale rights, white-label"
+    },
+    "revenue": {
+      "author": 70,
+      "platform": 30
+    }
+  },
+  "analytics": {
+    "downloads": 1247,
+    "rating": 4.8,
+    "reviews": 23,
+    "revenue": 12470.53,
+    "trending": true
+  },
+  "technical": {
+    "shaderComplexity": "Medium",
+    "drawCalls": 1,
+    "memoryUsage": "~120MB",
+    "cpuUsage": "Low-Medium",
+    "batterySaver": false,
+    "optimizations": [
+      "Single-pass rendering",
+      "Efficient uniform updates",
+      "Minimal state changes",
+      "WebGL 2.0 optimizations when available"
+    ]
+  }
+}

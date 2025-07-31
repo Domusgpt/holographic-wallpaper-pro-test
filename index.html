@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Wallpaper Pro - Advanced Visual Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main Canvas -->
+    <canvas id="holoCanvas"></canvas>
+    
+    <!-- Advanced Editor Panel -->
+    <div class="editor-panel" id="editorPanel">
+        <div class="editor-header">
+            <h1>HOLOGRAPHIC PRO</h1>
+            <button class="minimize-btn" onclick="toggleEditor()">_</button>
+        </div>
+        
+        <!-- Editor Tabs -->
+        <div class="editor-tabs">
+            <button class="tab-btn active" data-tab="presets">Presets</button>
+            <button class="tab-btn" data-tab="geometry">Geometry</button>
+            <button class="tab-btn" data-tab="colors">Colors</button>
+            <button class="tab-btn" data-tab="animation">Animation</button>
+            <button class="tab-btn" data-tab="interaction">Interaction</button>
+            <button class="tab-btn" data-tab="export">Export</button>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Presets Tab -->
+            <div class="tab-panel active" id="presets-tab">
+                <h3>Quick Presets</h3>
+                <div class="preset-grid" id="presetGrid">
+                    <!-- Presets will be dynamically loaded -->
+                </div>
+                <button class="btn-primary" onclick="saveAsPreset()">Save Current as Preset</button>
+            </div>
+            
+            <!-- Geometry Tab -->
+            <div class="tab-panel" id="geometry-tab">
+                <h3>Geometry Controls</h3>
+                <div class="control-group">
+                    <label>Primary Geometry</label>
+                    <select id="geometrySelect" class="select-modern">
+                        <option value="0">Tetrahedron</option>
+                        <option value="1">Hypercube</option>
+                        <option value="2">Sphere</option>
+                        <option value="3">Torus</option>
+                        <option value="4">Klein Bottle</option>
+                        <option value="5">Fractal</option>
+                        <option value="6" selected>Wave</option>
+                        <option value="7">Crystal</option>
+                        <option value="8">Custom Shader</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Secondary Geometry (Blend)</label>
+                    <select id="geometryBlendSelect" class="select-modern">
+                        <option value="-1">None</option>
+                        <option value="0">Tetrahedron</option>
+                        <option value="1">Hypercube</option>
+                        <option value="2">Sphere</option>
+                        <option value="3">Torus</option>
+                        <option value="4">Klein Bottle</option>
+                        <option value="5">Fractal</option>
+                        <option value="6">Wave</option>
+                        <option value="7">Crystal</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Blend Amount: <span id="blendAmountValue">0%</span></label>
+                    <input type="range" id="blendAmount" min="0" max="100" value="0" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Density: <span id="densityValue">1.4</span></label>
+                    <input type="range" id="densityRange" min="0.1" max="5" step="0.05" value="1.4" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Complexity: <span id="complexityValue">3</span></label>
+                    <input type="range" id="complexityRange" min="1" max="10" step="1" value="3" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Morph: <span id="morphValue">0.4</span></label>
+                    <input type="range" id="morphRange" min="0" max="1" step="0.02" value="0.4" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Chaos: <span id="chaosValue">0.25</span></label>
+                    <input type="range" id="chaosRange" min="0" max="1" step="0.02" value="0.25" class="slider-modern">
+                </div>
+            </div>
+            
+            <!-- Colors Tab -->
+            <div class="tab-panel" id="colors-tab">
+                <h3>Color System</h3>
+                <div class="control-group">
+                    <label>Color Mode</label>
+                    <select id="colorModeSelect" class="select-modern">
+                        <option value="hsl">HSL Gradient</option>
+                        <option value="rgb">RGB Channels</option>
+                        <option value="plasma">Plasma Effect</option>
+                        <option value="neon">Neon Glow</option>
+                        <option value="chrome">Chrome Reflection</option>
+                        <option value="hologram">Holographic</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Primary Hue: <span id="hueValue">200°</span></label>
+                    <input type="range" id="hueRange" min="0" max="360" step="1" value="200" class="slider-modern gradient-hue">
+                </div>
+                
+                <div class="control-group">
+                    <label>Secondary Hue: <span id="hue2Value">260°</span></label>
+                    <input type="range" id="hue2Range" min="0" max="360" step="1" value="260" class="slider-modern gradient-hue">
+                </div>
+                
+                <div class="control-group">
+                    <label>Saturation: <span id="saturationValue">0.8</span></label>
+                    <input type="range" id="saturationRange" min="0" max="1" step="0.05" value="0.8" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Brightness: <span id="brightnessValue">0.7</span></label>
+                    <input type="range" id="brightnessRange" min="0.2" max="1" step="0.05" value="0.7" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Glow Intensity: <span id="glowValue">0.5</span></label>
+                    <input type="range" id="glowRange" min="0" max="1" step="0.05" value="0.5" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Color Cycling Speed: <span id="colorSpeedValue">0.2</span></label>
+                    <input type="range" id="colorSpeedRange" min="0" max="2" step="0.05" value="0.2" class="slider-modern">
+                </div>
+                
+                <div class="palette-presets">
+                    <h4>Color Palettes</h4>
+                    <div class="palette-grid" id="paletteGrid">
+                        <!-- Palettes will be dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Animation Tab -->
+            <div class="tab-panel" id="animation-tab">
+                <h3>Animation & Motion</h3>
+                <div class="control-group">
+                    <label>Animation Curve</label>
+                    <select id="easingSelect" class="select-modern">
+                        <option value="linear">Linear</option>
+                        <option value="easeInOut">Ease In Out</option>
+                        <option value="easeInQuad">Ease In Quad</option>
+                        <option value="easeOutQuad">Ease Out Quad</option>
+                        <option value="easeInOutQuad">Ease In Out Quad</option>
+                        <option value="easeInCubic">Ease In Cubic</option>
+                        <option value="easeOutCubic">Ease Out Cubic</option>
+                        <option value="easeInOutCubic">Ease In Out Cubic</option>
+                        <option value="easeInQuart">Ease In Quart</option>
+                        <option value="easeOutQuart">Ease Out Quart</option>
+                        <option value="easeInOutQuart">Ease In Out Quart</option>
+                        <option value="easeInQuint">Ease In Quint</option>
+                        <option value="easeOutQuint">Ease Out Quint</option>
+                        <option value="easeInOutQuint">Ease In Out Quint</option>
+                        <option value="easeInSine">Ease In Sine</option>
+                        <option value="easeOutSine">Ease Out Sine</option>
+                        <option value="easeInOutSine">Ease In Out Sine</option>
+                        <option value="easeInExpo">Ease In Expo</option>
+                        <option value="easeOutExpo">Ease Out Expo</option>
+                        <option value="easeInOutExpo">Ease In Out Expo</option>
+                        <option value="easeInCirc">Ease In Circ</option>
+                        <option value="easeOutCirc">Ease Out Circ</option>
+                        <option value="easeInOutCirc">Ease In Out Circ</option>
+                        <option value="easeInElastic">Ease In Elastic</option>
+                        <option value="easeOutElastic">Ease Out Elastic</option>
+                        <option value="easeInOutElastic">Ease In Out Elastic</option>
+                        <option value="easeInBack">Ease In Back</option>
+                        <option value="easeOutBack">Ease Out Back</option>
+                        <option value="easeInOutBack">Ease In Out Back</option>
+                        <option value="easeInBounce">Ease In Bounce</option>
+                        <option value="easeOutBounce">Ease Out Bounce</option>
+                        <option value="easeInOutBounce">Ease In Out Bounce</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Base Speed: <span id="speedValue">0.7</span></label>
+                    <input type="range" id="speedRange" min="0" max="5" step="0.05" value="0.7" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Rotation Speed X: <span id="rotXValue">0.5</span></label>
+                    <input type="range" id="rotXRange" min="-2" max="2" step="0.05" value="0.5" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Rotation Speed Y: <span id="rotYValue">0.3</span></label>
+                    <input type="range" id="rotYRange" min="-2" max="2" step="0.05" value="0.3" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Rotation Speed Z: <span id="rotZValue">0.2</span></label>
+                    <input type="range" id="rotZRange" min="-2" max="2" step="0.05" value="0.2" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Pulse Frequency: <span id="pulseValue">0.5</span></label>
+                    <input type="range" id="pulseRange" min="0" max="2" step="0.05" value="0.5" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Wave Amplitude: <span id="waveAmpValue">0.3</span></label>
+                    <input type="range" id="waveAmpRange" min="0" max="1" step="0.05" value="0.3" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoRotate" checked>
+                        <span>Auto Rotate</span>
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="breathingEffect">
+                        <span>Breathing Effect</span>
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="particleMode">
+                        <span>Particle Mode</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Interaction Tab -->
+            <div class="tab-panel" id="interaction-tab">
+                <h3>User Interaction</h3>
+                <div class="control-group">
+                    <label>Mouse Reactivity: <span id="mouseReactValue">0.8</span></label>
+                    <input type="range" id="mouseReactRange" min="0" max="2" step="0.05" value="0.8" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Touch Sensitivity: <span id="touchSensValue">1.0</span></label>
+                    <input type="range" id="touchSensRange" min="0" max="2" step="0.05" value="1.0" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label>Scroll Parallax: <span id="scrollParallaxValue">0.5</span></label>
+                    <input type="range" id="scrollParallaxRange" min="0" max="2" step="0.05" value="0.5" class="slider-modern">
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="audioReactive">
+                        <span>Audio Reactive</span>
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="gyroEnabled">
+                        <span>Gyroscope Control (Mobile)</span>
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="clickRipples" checked>
+                        <span>Click Ripple Effects</span>
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="magneticMouse">
+                        <span>Magnetic Mouse Effect</span>
+                    </label>
+                </div>
+                
+                <h4>Audio Controls</h4>
+                <div class="control-group audio-disabled" id="audioControls">
+                    <label>Bass Response: <span id="bassValue">1.0</span></label>
+                    <input type="range" id="bassRange" min="0" max="2" step="0.05" value="1.0" class="slider-modern" disabled>
+                </div>
+                
+                <div class="control-group audio-disabled">
+                    <label>Mid Response: <span id="midValue">1.0</span></label>
+                    <input type="range" id="midRange" min="0" max="2" step="0.05" value="1.0" class="slider-modern" disabled>
+                </div>
+                
+                <div class="control-group audio-disabled">
+                    <label>High Response: <span id="highValue">1.0</span></label>
+                    <input type="range" id="highRange" min="0" max="2" step="0.05" value="1.0" class="slider-modern" disabled>
+                </div>
+            </div>
+            
+            <!-- Export Tab -->
+            <div class="tab-panel" id="export-tab">
+                <h3>Export & Integration</h3>
+                
+                <div class="export-section">
+                    <h4>Export as JSON Theme</h4>
+                    <p>Export your wallpaper configuration for use in websites, games, and apps.</p>
+                    <button class="btn-primary" onclick="exportAsJSON()">Export JSON</button>
+                </div>
+                
+                <div class="export-section">
+                    <h4>Export for Web</h4>
+                    <p>Generate embeddable code for your website.</p>
+                    <div class="export-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="exportMinified" checked>
+                            <span>Minified Code</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="exportResponsive" checked>
+                            <span>Responsive</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="exportLowPower">
+                            <span>Low Power Mode</span>
+                        </label>
+                    </div>
+                    <button class="btn-primary" onclick="exportForWeb()">Generate Embed Code</button>
+                </div>
+                
+                <div class="export-section">
+                    <h4>Export as Wallpaper</h4>
+                    <div class="export-grid">
+                        <button class="export-btn" onclick="exportWallpaper(1920, 1080)">
+                            <span class="export-res">1920×1080</span>
+                            <span class="export-label">Full HD</span>
+                        </button>
+                        <button class="export-btn" onclick="exportWallpaper(2560, 1440)">
+                            <span class="export-res">2560×1440</span>
+                            <span class="export-label">2K</span>
+                        </button>
+                        <button class="export-btn" onclick="exportWallpaper(3840, 2160)">
+                            <span class="export-res">3840×2160</span>
+                            <span class="export-label">4K</span>
+                        </button>
+                        <button class="export-btn" onclick="exportWallpaper(1080, 1920)">
+                            <span class="export-res">1080×1920</span>
+                            <span class="export-label">Phone</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="export-section">
+                    <h4>Marketplace Integration</h4>
+                    <p>Prepare your design for marketplace distribution.</p>
+                    <div class="marketplace-options">
+                        <input type="text" id="themeName" placeholder="Theme Name" class="input-modern">
+                        <input type="text" id="authorName" placeholder="Author Name" class="input-modern">
+                        <textarea id="themeDescription" placeholder="Description" class="textarea-modern" rows="3"></textarea>
+                        <input type="number" id="themePrice" placeholder="Price (USD)" min="0" step="0.01" class="input-modern">
+                    </div>
+                    <button class="btn-primary" onclick="prepareForMarketplace()">Prepare for Marketplace</button>
+                </div>
+                
+                <div class="export-section">
+                    <h4>Import Theme</h4>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import JSON Theme</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live Preview Controls -->
+        <div class="preview-controls">
+            <button class="btn-icon" onclick="toggleFullscreen()" title="Fullscreen">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+            </button>
+            <button class="btn-icon" onclick="randomizeAll()" title="Randomize">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
+                </svg>
+            </button>
+            <button class="btn-icon" onclick="resetToDefaults()" title="Reset">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+            </button>
+            <button class="btn-icon" onclick="shareConfiguration()" title="Share">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Quick Access Toolbar -->
+    <div class="quick-toolbar" id="quickToolbar">
+        <button class="tool-btn" onclick="quickRandomize()" title="Quick Randomize">🎲</button>
+        <button class="tool-btn" onclick="quickColorShift()" title="Color Shift">🎨</button>
+        <button class="tool-btn" onclick="quickGeometryChange()" title="Next Geometry">⬡</button>
+        <button class="tool-btn" onclick="quickSpeedToggle()" title="Speed Toggle">⚡</button>
+        <button class="tool-btn" onclick="quickDensityToggle()" title="Density Toggle">⊞</button>
+    </div>
+    
+    <!-- Performance Monitor -->
+    <div class="performance-monitor" id="perfMonitor">
+        <div class="perf-stat">FPS: <span id="fpsCounter">60</span></div>
+        <div class="perf-stat">Draw Calls: <span id="drawCalls">0</span></div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Initializing Holographic Engine</h2>
+            <p>Preparing visual systems...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script type="module" src="app.js"></script>
+</body>
+</html>
