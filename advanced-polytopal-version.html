@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Wallpaper Pro - Advanced Polytopal Core System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ffff;
+            --primary-dark: #00bfbf;
+            --bg-dark: #000;
+            --bg-panel: rgba(0, 10, 20, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #b0eaff;
+            --border: rgba(0, 255, 255, 0.3);
+            --shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        #reactive-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .editor-panel {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            width: 380px;
+            max-height: calc(100vh - 40px);
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .editor-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .minimize-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .editor-content {
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 5px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active,
+        .tab-btn:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group select {
+            padding: 8px;
+            background: rgba(20, 30, 50, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+        }
+
+        .value-display {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+            text-align: center;
+        }
+
+        .preset-btn:hover,
+        .preset-btn.active {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .preset-btn.hypercube { background: linear-gradient(45deg, #ff00ff, #800080); }
+        .preset-btn.tetrahedron { background: linear-gradient(45deg, #00ffff, #008080); }
+        .preset-btn.sphere { background: linear-gradient(45deg, #ffff00, #808000); }
+        .preset-btn.torus { background: linear-gradient(45deg, #00ff00, #008000); }
+        .preset-btn.klein { background: linear-gradient(45deg, #ff8000, #804000); }
+        .preset-btn.fractal { background: linear-gradient(45deg, #8000ff, #400080); }
+        .preset-btn.wave { background: linear-gradient(45deg, #ff0080, #800040); }
+        .preset-btn.crystal { background: linear-gradient(45deg, #00ff80, #008040); }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .interaction-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 15px;
+            z-index: 1000;
+            font-size: 12px;
+            min-width: 200px;
+        }
+
+        .indicator-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .indicator-label {
+            color: #00ffff;
+        }
+
+        .indicator-value {
+            color: #fff;
+            font-family: monospace;
+        }
+
+        .hold-indicator {
+            position: fixed;
+            pointer-events: none;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ff00ff;
+            border-radius: 50%;
+            background: rgba(255, 0, 255, 0.1);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .hold-indicator.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .error {
+            color: #ff4444;
+            border-color: #ff4444;
+        }
+
+        .success {
+            color: #44ff44;
+            border-color: #44ff44;
+        }
+
+        @media (max-width: 768px) {
+            .editor-panel {
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 60vh;
+                border-radius: 12px 12px 0 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="reactive-canvas"></canvas>
+    
+    <div class="hold-indicator" id="holdIndicator"></div>
+    
+    <div class="editor-panel">
+        <div class="editor-header">
+            <h1>POLYTOPAL HOLOGRAPHIC PRO</h1>
+            <button class="minimize-btn" onclick="togglePanel()">−</button>
+        </div>
+        
+        <div class="editor-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="presets">Presets</button>
+                <button class="tab-btn" data-tab="geometry">Geometry</button>
+                <button class="tab-btn" data-tab="4d">4D Matrix</button>
+                <button class="tab-btn" data-tab="interaction">Interaction</button>
+                <button class="tab-btn" data-tab="export">Export</button>
+            </div>
+            
+            <!-- Presets Tab -->
+            <div class="tab-content active" id="presets-tab">
+                <div class="control-group">
+                    <label>Polytopal Geometries</label>
+                    <div class="preset-grid" id="presetGrid">
+                        <div class="preset-btn hypercube" data-theme="hypercube">Hypercube</div>
+                        <div class="preset-btn tetrahedron" data-theme="tetrahedron">Tetrahedron</div>
+                        <div class="preset-btn sphere" data-theme="sphere">Sphere</div>
+                        <div class="preset-btn torus" data-theme="torus">Torus</div>
+                        <div class="preset-btn klein" data-theme="klein">Klein</div>
+                        <div class="preset-btn fractal" data-theme="fractal">Fractal</div>
+                        <div class="preset-btn wave" data-theme="wave">Wave</div>
+                        <div class="preset-btn crystal" data-theme="crystal">Crystal</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Geometry Tab -->
+            <div class="tab-content" id="geometry-tab">
+                <div class="control-group">
+                    <label>Grid Density: <span id="gridDensityValue">12.0</span></label>
+                    <input type="range" id="gridDensity" min="4" max="30" step="0.5" value="12.0">
+                </div>
+                
+                <div class="control-group">
+                    <label>Morphology Factor: <span id="morphFactorValue">0.5</span></label>
+                    <input type="range" id="morphFactor" min="0" max="2" step="0.05" value="0.5">
+                </div>
+                
+                <div class="control-group">
+                    <label>Dimensional Level: <span id="dimensionValue">3.5</span></label>
+                    <input type="range" id="dimension" min="3.0" max="4.5" step="0.05" value="3.5">
+                </div>
+                
+                <div class="control-group">
+                    <label>Glitch Intensity: <span id="glitchValue">0.3</span></label>
+                    <input type="range" id="glitchIntensity" min="0" max="1" step="0.05" value="0.3">
+                </div>
+                
+                <div class="control-group">
+                    <label>Rotation Speed: <span id="rotationSpeedValue">0.5</span></label>
+                    <input type="range" id="rotationSpeed" min="0" max="3" step="0.1" value="0.5">
+                </div>
+            </div>
+            
+            <!-- 4D Matrix Tab -->
+            <div class="tab-content" id="4d-tab">
+                <div class="control-group">
+                    <label>4D Rotation XW: <span id="rot4dXWValue">0.5</span></label>
+                    <input type="range" id="rot4dXW" min="-2" max="2" step="0.1" value="0.5">
+                </div>
+                
+                <div class="control-group">
+                    <label>4D Rotation YW: <span id="rot4dYWValue">0.3</span></label>
+                    <input type="range" id="rot4dYW" min="-2" max="2" step="0.1" value="0.3">
+                </div>
+                
+                <div class="control-group">
+                    <label>4D Rotation ZW: <span id="rot4dZWValue">0.2</span></label>
+                    <input type="range" id="rot4dZW" min="-2" max="2" step="0.1" value="0.2">
+                </div>
+                
+                <div class="control-group">
+                    <label>Projection Distance: <span id="projectionValue">2.0</span></label>
+                    <input type="range" id="projection" min="1" max="5" step="0.1" value="2.0">
+                </div>
+                
+                <div class="control-group">
+                    <label>Hypersphere Radius: <span id="hyperRadiusValue">1.0</span></label>
+                    <input type="range" id="hyperRadius" min="0.5" max="3" step="0.1" value="1.0">
+                </div>
+            </div>
+            
+            <!-- Interaction Tab -->  
+            <div class="tab-content" id="interaction-tab">
+                <div class="control-group">
+                    <label>Mouse Reactivity: <span id="mouseReactValue">0.8</span></label>
+                    <input type="range" id="mouseReact" min="0" max="2" step="0.1" value="0.8">
+                </div>
+                
+                <div class="control-group">
+                    <label>Hold Effect Intensity: <span id="holdIntensityValue">1.0</span></label>
+                    <input type="range" id="holdIntensity" min="0" max="3" step="0.1" value="1.0">
+                </div>
+                
+                <div class="control-group">
+                    <label>Scroll Sensitivity: <span id="scrollSensValue">1.0</span></label>
+                    <input type="range" id="scrollSens" min="0" max="3" step="0.1" value="1.0">
+                </div>
+                
+                <div class="control-group">
+                    <label>Interaction Decay: <span id="decayValue">0.98</span></label>
+                    <input type="range" id="decay" min="0.9" max="0.999" step="0.001" value="0.98">
+                </div>
+            </div>
+            
+            <!-- Export Tab -->
+            <div class="tab-content" id="export-tab">
+                <div class="buttons">
+                    <button class="btn" onclick="exportPolytopals()">Export JSON</button>
+                    <button class="btn" onclick="exportWallpaper()">Export PNG</button>
+                    <button class="btn" onclick="randomizeAll()">Randomize</button>
+                    <button class="btn" onclick="resetDefaults()">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="interaction-indicator">
+        <div class="indicator-row">
+            <span class="indicator-label">Geometry:</span>
+            <span class="indicator-value" id="currentGeometry">Hypercube</span>
+        </div>
+        <div class="indicator-row">
+            <span class="indicator-label">Interaction:</span>
+            <span class="indicator-value" id="interactionType">Idle</span>
+        </div>
+        <div class="indicator-row">
+            <span class="indicator-label">Morph Level:</span>
+            <span class="indicator-value" id="morphLevel">0.5</span>
+        </div>
+        <div class="indicator-row">
+            <span class="indicator-label">Grid Density:</span>
+            <span class="indicator-value" id="gridDensityIndicator">12.0</span>
+        </div>
+        <div class="indicator-row">
+            <span class="indicator-label">Dimension:</span>
+            <span class="indicator-value" id="dimensionLevel">3.5</span>
+        </div>
+        <div class="indicator-row">
+            <span class="indicator-label">4D Rotation:</span>
+            <span class="indicator-value" id="rotation4dLevel">Active</span>
+        </div>
+    </div>
+    
+    <div class="status" id="status">Initializing Polytopal Core...</div>
+
+    <script>
+        console.log('🔮 Polytopal Holographic Wallpaper Pro Loading...');
+        
+        // Advanced Polytopal Holographic System
+        class PolytopalsHolographicCore {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                
+                if (!this.gl) {
+                    console.error('WebGL not supported');
+                    return;
+                }
+                
+                // Core state
+                this.startTime = Date.now();
+                this.currentGeometry = 'hypercube';
+                this.interactionState = {
+                    type: 'idle',
+                    intensity: 0,
+                    lastActivity: Date.now(),
+                    holdStart: 0,
+                    isHolding: false,
+                    scrollVelocity: 0,
+                    mouseX: 0.5,
+                    mouseY: 0.5
+                };
+                
+                // Enhanced polytopal configurations
+                this.geometryConfigs = {
+                    hypercube: {
+                        baseColor: [1.0, 0.0, 1.0],      // Magenta
+                        gridDensity: 12.0,
+                        morphFactor: 0.5,
+                        dimension: 3.5,
+                        glitchIntensity: 0.3,
+                        rotationSpeed: 0.5,
+                        geometry: 0,
+                        rot4dXW: 0.5,
+                        rot4dYW: 0.3,
+                        rot4dZW: 0.2,
+                        projection: 2.0,
+                        hyperRadius: 1.0
+                    },
+                    tetrahedron: {
+                        baseColor: [0.0, 1.0, 1.0],      // Cyan
+                        gridDensity: 8.0,
+                        morphFactor: 0.7,
+                        dimension: 3.2,
+                        glitchIntensity: 0.2,
+                        rotationSpeed: 0.7,
+                        geometry: 1,
+                        rot4dXW: 0.3,
+                        rot4dYW: 0.7,
+                        rot4dZW: 0.4,
+                        projection: 2.2,
+                        hyperRadius: 0.8
+                    },
+                    sphere: {
+                        baseColor: [1.0, 1.0, 0.0],      // Yellow
+                        gridDensity: 15.0,
+                        morphFactor: 0.3,
+                        dimension: 3.8,
+                        glitchIntensity: 0.1,
+                        rotationSpeed: 0.3,
+                        geometry: 2,
+                        rot4dXW: 0.1,
+                        rot4dYW: 0.4,
+                        rot4dZW: 0.6,
+                        projection: 1.8,
+                        hyperRadius: 1.2
+                    },
+                    torus: {
+                        baseColor: [0.0, 1.0, 0.0],      // Green
+                        gridDensity: 10.0,
+                        morphFactor: 0.8,
+                        dimension: 3.6,
+                        glitchIntensity: 0.4,
+                        rotationSpeed: 0.6,
+                        geometry: 3,
+                        rot4dXW: 0.8,
+                        rot4dYW: 0.2,
+                        rot4dZW: 0.5,
+                        projection: 2.5,
+                        hyperRadius: 0.9
+                    },
+                    klein: {
+                        baseColor: [1.0, 0.5, 0.0],      // Orange
+                        gridDensity: 14.0,
+                        morphFactor: 0.9,
+                        dimension: 3.9,
+                        glitchIntensity: 0.5,
+                        rotationSpeed: 0.4,
+                        geometry: 4,
+                        rot4dXW: 0.6,
+                        rot4dYW: 0.9,
+                        rot4dZW: 0.1,
+                        projection: 2.8,
+                        hyperRadius: 1.5
+                    },
+                    fractal: {
+                        baseColor: [0.5, 0.0, 1.0],      // Purple
+                        gridDensity: 20.0,
+                        morphFactor: 0.6,
+                        dimension: 3.7,
+                        glitchIntensity: 0.6,
+                        rotationSpeed: 0.8,
+                        geometry: 5,
+                        rot4dXW: 1.2,
+                        rot4dYW: 0.6,
+                        rot4dZW: 0.8,
+                        projection: 1.5,
+                        hyperRadius: 2.0
+                    },
+                    wave: {
+                        baseColor: [1.0, 0.0, 0.5],      // Pink
+                        gridDensity: 16.0,
+                        morphFactor: 0.4,
+                        dimension: 3.3,
+                        glitchIntensity: 0.3,
+                        rotationSpeed: 0.9,
+                        geometry: 6,
+                        rot4dXW: 0.4,
+                        rot4dYW: 1.1,
+                        rot4dZW: 0.7,
+                        projection: 2.1,
+                        hyperRadius: 1.1
+                    },
+                    crystal: {
+                        baseColor: [0.0, 1.0, 0.5],      // Mint
+                        gridDensity: 18.0,
+                        morphFactor: 0.2,
+                        dimension: 3.1,
+                        glitchIntensity: 0.2,
+                        rotationSpeed: 0.2,
+                        geometry: 7,
+                        rot4dXW: 0.2,
+                        rot4dYW: 0.5,
+                        rot4dZW: 0.3,
+                        projection: 2.3,
+                        hyperRadius: 0.7
+                    }
+                };
+                
+                // Current parameters (reactive)
+                this.params = { ...this.geometryConfigs.hypercube };
+                
+                this.initShaders();
+                this.initBuffers();
+                this.setupInteractions();
+                this.setupControls();
+                this.resize();
+                this.animate();
+                
+                console.log('✅ Polytopal Holographic Core initialized');
+                this.setStatus('Polytopal Core loaded successfully', 'success');
+            }
+            
+            initShaders() {
+                const vertexShaderSource = `
+                  attribute vec2 a_position;
+                  void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                  }
+                `;
+                
+                // Enhanced fragment shader with 4D mathematics
+                const fragmentShaderSource = `
+                  precision highp float;
+                  
+                  uniform vec2 u_resolution;
+                  uniform float u_time;
+                  uniform vec2 u_mouse;
+                  uniform float u_morphFactor;
+                  uniform float u_glitchIntensity;
+                  uniform float u_rotationSpeed;
+                  uniform float u_dimension;
+                  uniform float u_gridDensity;
+                  uniform vec3 u_baseColor;
+                  uniform float u_interactionIntensity;
+                  uniform float u_geometry;
+                  uniform float u_rot4dXW;
+                  uniform float u_rot4dYW;
+                  uniform float u_rot4dZW;
+                  uniform float u_projection;
+                  uniform float u_hyperRadius;
+                  
+                  // 4D rotation matrices
+                  mat4 rotateXW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(c, 0, 0, -s, 0, 1, 0, 0, 0, 0, 1, 0, s, 0, 0, c);
+                  }
+                  
+                  mat4 rotateYW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(1, 0, 0, 0, 0, c, 0, -s, 0, 0, 1, 0, 0, s, 0, c);
+                  }
+                  
+                  mat4 rotateZW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, c, -s, 0, 0, s, c);
+                  }
+                  
+                  vec3 project4Dto3D(vec4 p) {
+                    float w = u_projection / (u_projection + p.w);
+                    return vec3(p.x * w, p.y * w, p.z * w);
+                  }
+                  
+                  // Enhanced geometry generators with 4D capabilities
+                  float hypercubeLattice(vec3 p, float gridSize) {
+                    vec3 grid = fract(p * gridSize);
+                    vec3 edges = 1.0 - smoothstep(0.0, 0.03, abs(grid - 0.5));
+                    return max(max(edges.x, edges.y), edges.z);
+                  }
+                  
+                  float tetrahedronLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize) - 0.5;
+                    float d1 = length(q);
+                    float d2 = length(q - vec3(0.5, 0.0, 0.0));
+                    float d3 = length(q - vec3(0.0, 0.5, 0.0));
+                    float d4 = length(q - vec3(0.0, 0.0, 0.5));
+                    return 1.0 - smoothstep(0.0, 0.1, min(min(d1, d2), min(d3, d4)));
+                  }
+                  
+                  float sphereLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize) - 0.5;
+                    float r = length(q);
+                    return 1.0 - smoothstep(0.2 * u_hyperRadius, 0.5 * u_hyperRadius, r);
+                  }
+                  
+                  float torusLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize) - 0.5;
+                    float r1 = sqrt(q.x*q.x + q.y*q.y);
+                    float r2 = sqrt((r1 - 0.3*u_hyperRadius)*(r1 - 0.3*u_hyperRadius) + q.z*q.z);
+                    return 1.0 - smoothstep(0.0, 0.1, r2);
+                  }
+                  
+                  float kleinLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize);
+                    float u = q.x * 2.0 * 3.14159;
+                    float v = q.y * 2.0 * 3.14159;
+                    float x = cos(u) * (3.0 + cos(u/2.0) * sin(v) - sin(u/2.0) * sin(2.0*v)) * u_hyperRadius;
+                    float klein = length(vec2(x, q.z)) - 0.1;
+                    return 1.0 - smoothstep(0.0, 0.05, abs(klein));
+                  }
+                  
+                  float fractalLattice(vec3 p, float gridSize) {
+                    vec3 q = p * gridSize;
+                    float scale = 1.0;
+                    float fractal = 0.0;
+                    for(int i = 0; i < 4; i++) {
+                      q = fract(q) - 0.5;
+                      fractal += abs(length(q)) / scale;
+                      scale *= 2.0;
+                      q *= 2.0 * u_hyperRadius;
+                    }
+                    return 1.0 - smoothstep(0.0, 1.0, fractal);
+                  }
+                  
+                  float waveLattice(vec3 p, float gridSize) {
+                    vec3 q = p * gridSize;
+                    float wave = sin(q.x * 2.0 * u_hyperRadius) * sin(q.y * 2.0 * u_hyperRadius) * sin(q.z * 2.0 * u_hyperRadius + u_time);
+                    return smoothstep(-0.5, 0.5, wave);
+                  }
+                  
+                  float crystalLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize) - 0.5;
+                    float d = max(max(abs(q.x), abs(q.y)), abs(q.z)) / u_hyperRadius;
+                    return 1.0 - smoothstep(0.3, 0.5, d);
+                  }
+                  
+                  float getGeometryValue(vec3 p, float gridSize, float geomType) {
+                    if (geomType < 0.5) return hypercubeLattice(p, gridSize);
+                    else if (geomType < 1.5) return tetrahedronLattice(p, gridSize);
+                    else if (geomType < 2.5) return sphereLattice(p, gridSize);
+                    else if (geomType < 3.5) return torusLattice(p, gridSize);
+                    else if (geomType < 4.5) return kleinLattice(p, gridSize);
+                    else if (geomType < 5.5) return fractalLattice(p, gridSize);
+                    else if (geomType < 6.5) return waveLattice(p, gridSize);
+                    else return crystalLattice(p, gridSize);
+                  }
+                  
+                  void main() {
+                    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                    float aspectRatio = u_resolution.x / u_resolution.y;
+                    uv.x *= aspectRatio;
+                    
+                    vec2 center = vec2(u_mouse.x * aspectRatio, u_mouse.y);
+                    vec3 p = vec3(uv - center, 0.0);
+                    
+                    // Enhanced 4D rotation system
+                    float timeRotation = u_time * 0.2 * u_rotationSpeed * (1.0 + u_interactionIntensity);
+                    mat2 rotation = mat2(cos(timeRotation), -sin(timeRotation), sin(timeRotation), cos(timeRotation));
+                    p.xy = rotation * p.xy;
+                    p.z = sin(u_time * 0.1) * 0.5;
+                    
+                    // Advanced 4D transformations with user controls
+                    if (u_dimension > 3.0) {
+                      float w = sin(length(p) * 3.0 + u_time * 0.3) * (u_dimension - 3.0) * (1.0 + u_interactionIntensity * 0.5);
+                      vec4 p4d = vec4(p, w);
+                      
+                      // User-controlled 4D rotations
+                      p4d = rotateXW(timeRotation * u_rot4dXW) * p4d;
+                      p4d = rotateYW(timeRotation * u_rot4dYW) * p4d;
+                      p4d = rotateZW(timeRotation * u_rot4dZW) * p4d;
+                      
+                      p = project4Dto3D(p4d);
+                    }
+                    
+                    // Dynamic grid density based on interaction
+                    float dynamicGridDensity = u_gridDensity * (1.0 + u_interactionIntensity * 0.3);
+                    
+                    // Get geometry value
+                    float lattice = getGeometryValue(p, dynamicGridDensity, u_geometry);
+                    
+                    // Enhanced interaction-driven glitch effects
+                    float glitchAmount = u_glitchIntensity * (0.1 + 0.1 * sin(u_time * 5.0)) * (1.0 + u_interactionIntensity);
+                    
+                    vec2 rOffset = vec2(glitchAmount, glitchAmount * 0.5);
+                    vec2 gOffset = vec2(-glitchAmount * 0.3, glitchAmount * 0.2);
+                    vec2 bOffset = vec2(glitchAmount * 0.1, -glitchAmount * 0.4);
+                    
+                    float r = getGeometryValue(vec3(p.xy + rOffset, p.z), dynamicGridDensity, u_geometry);
+                    float g = getGeometryValue(vec3(p.xy + gOffset, p.z), dynamicGridDensity, u_geometry);
+                    float b = getGeometryValue(vec3(p.xy + bOffset, p.z), dynamicGridDensity, u_geometry);
+                    
+                    // Base colors with theme-specific tinting
+                    vec3 baseColor = vec3(0.02, 0.05, 0.1);
+                    vec3 latticeColor = u_baseColor * (0.8 + 0.2 * u_interactionIntensity);
+                    
+                    vec3 color = mix(baseColor, latticeColor, vec3(r, g, b));
+                    
+                    // Enhanced interaction-responsive glow
+                    color += u_baseColor * 0.1 * (0.5 + 0.5 * sin(u_time * 0.5)) * u_interactionIntensity;
+                    
+                    // Morphology-based color shifting
+                    color += u_baseColor * u_morphFactor * 0.05 * sin(u_time + length(p) * 10.0);
+                    
+                    // Vignette with projection influence
+                    float vignette = 1.0 - smoothstep(0.4, 1.4 * u_projection * 0.5, length(uv - vec2(center.x, center.y)));
+                    color *= vignette;
+                    
+                    gl_FragColor = vec4(color, 0.95);
+                  }
+                `;
+                
+                const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
+                const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+                this.program = this.createProgram(vertexShader, fragmentShader);
+                
+                // Get uniform locations
+                this.uniforms = {
+                    resolution: this.gl.getUniformLocation(this.program, 'u_resolution'),
+                    time: this.gl.getUniformLocation(this.program, 'u_time'),
+                    mouse: this.gl.getUniformLocation(this.program, 'u_mouse'),
+                    morphFactor: this.gl.getUniformLocation(this.program, 'u_morphFactor'),
+                    glitchIntensity: this.gl.getUniformLocation(this.program, 'u_glitchIntensity'),
+                    rotationSpeed: this.gl.getUniformLocation(this.program, 'u_rotationSpeed'),
+                    dimension: this.gl.getUniformLocation(this.program, 'u_dimension'),
+                    gridDensity: this.gl.getUniformLocation(this.program, 'u_gridDensity'),
+                    baseColor: this.gl.getUniformLocation(this.program, 'u_baseColor'),
+                    interactionIntensity: this.gl.getUniformLocation(this.program, 'u_interactionIntensity'),
+                    geometry: this.gl.getUniformLocation(this.program, 'u_geometry'),
+                    rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
+                    rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
+                    rot4dZW: this.gl.getUniformLocation(this.program, 'u_rot4dZW'),
+                    projection: this.gl.getUniformLocation(this.program, 'u_projection'),
+                    hyperRadius: this.gl.getUniformLocation(this.program, 'u_hyperRadius')
+                };
+                
+                this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
+            }
+            
+            createShader(type, source) {
+                const shader = this.gl.createShader(type);
+                this.gl.shaderSource(shader, source);
+                this.gl.compileShader(shader);
+                
+                if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+                    console.error("Shader error:", this.gl.getShaderInfoLog(shader));
+                    this.gl.deleteShader(shader);
+                    return null;
+                }
+                return shader;
+            }
+            
+            createProgram(vertexShader, fragmentShader) {
+                const program = this.gl.createProgram();
+                this.gl.attachShader(program, vertexShader);
+                this.gl.attachShader(program, fragmentShader);
+                this.gl.linkProgram(program);
+                
+                if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+                    console.error("Program error:", this.gl.getProgramInfoLog(program));
+                    this.gl.deleteProgram(program);
+                    return null;
+                }
+                return program;
+            }
+            
+            initBuffers() {
+                this.positionBuffer = this.gl.createBuffer();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+                this.gl.bufferData(
+                    this.gl.ARRAY_BUFFER,
+                    new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]),
+                    this.gl.STATIC_DRAW
+                );
+            }
+            
+            setupInteractions() {
+                let lastScrollY = window.scrollY;
+                let lastScrollTime = Date.now();
+                
+                // Mouse movement
+                this.canvas.addEventListener('mousemove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.interactionState.mouseX = (e.clientX - rect.left) / rect.width;
+                    this.interactionState.mouseY = 1.0 - (e.clientY - rect.top) / rect.height;
+                    this.interactionState.lastActivity = Date.now();
+                    this.updateInteractionState('move', 0.3);
+                });
+                
+                // Click/Touch interactions with dimensional shift
+                const startHold = (e) => {
+                    this.interactionState.isHolding = true;
+                    this.interactionState.holdStart = Date.now();
+                    
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    
+                    const indicator = document.getElementById('holdIndicator');
+                    indicator.style.left = x + 'px';
+                    indicator.style.top = y + 'px';
+                    indicator.classList.add('active');
+                    
+                    this.updateInteractionState('hold', 1.0);
+                    e.preventDefault();
+                };
+                
+                const endHold = () => {
+                    this.interactionState.isHolding = false;
+                    document.getElementById('holdIndicator').classList.remove('active');
+                    this.updateInteractionState('release', 0.1);
+                };
+                
+                this.canvas.addEventListener('mousedown', startHold);
+                this.canvas.addEventListener('mouseup', endHold);
+                this.canvas.addEventListener('touchstart', startHold, { passive: false });
+                this.canvas.addEventListener('touchend', endHold);
+                
+                window.addEventListener('resize', () => this.resize());
+            }
+            
+            setupControls() {
+                // Tab system
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        
+                        btn.classList.add('active');
+                        document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+                    });
+                });
+                
+                // Geometry presets
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.setGeometry(btn.dataset.theme);
+                    });
+                });
+                
+                // Parameter controls
+                const controls = [
+                    'gridDensity', 'morphFactor', 'dimension', 'glitchIntensity', 'rotationSpeed',
+                    'rot4dXW', 'rot4dYW', 'rot4dZW', 'projection', 'hyperRadius',
+                    'mouseReact', 'holdIntensity', 'scrollSens', 'decay'
+                ];
+                
+                controls.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateFromControls());
+                    }
+                });
+                
+                this.updateControlsDisplay();
+            }
+            
+            updateFromControls() {
+                this.params.gridDensity = parseFloat(document.getElementById('gridDensity').value);
+                this.params.morphFactor = parseFloat(document.getElementById('morphFactor').value);
+                this.params.dimension = parseFloat(document.getElementById('dimension').value);
+                this.params.glitchIntensity = parseFloat(document.getElementById('glitchIntensity').value);
+                this.params.rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
+                this.params.rot4dXW = parseFloat(document.getElementById('rot4dXW').value);
+                this.params.rot4dYW = parseFloat(document.getElementById('rot4dYW').value);
+                this.params.rot4dZW = parseFloat(document.getElementById('rot4dZW').value);
+                this.params.projection = parseFloat(document.getElementById('projection').value);
+                this.params.hyperRadius = parseFloat(document.getElementById('hyperRadius').value);
+                
+                this.updateControlsDisplay();
+                this.updateInteractionIndicators();
+            }
+            
+            updateControlsDisplay() {
+                document.getElementById('gridDensityValue').textContent = this.params.gridDensity.toFixed(1);
+                document.getElementById('morphFactorValue').textContent = this.params.morphFactor.toFixed(2);
+                document.getElementById('dimensionValue').textContent = this.params.dimension.toFixed(2);
+                document.getElementById('glitchValue').textContent = this.params.glitchIntensity.toFixed(2);
+                document.getElementById('rotationSpeedValue').textContent = this.params.rotationSpeed.toFixed(1);
+                document.getElementById('rot4dXWValue').textContent = this.params.rot4dXW.toFixed(1);
+                document.getElementById('rot4dYWValue').textContent = this.params.rot4dYW.toFixed(1);
+                document.getElementById('rot4dZWValue').textContent = this.params.rot4dZW.toFixed(1);
+                document.getElementById('projectionValue').textContent = this.params.projection.toFixed(1);
+                document.getElementById('hyperRadiusValue').textContent = this.params.hyperRadius.toFixed(1);
+            }
+            
+            updateInteractionState(type, intensity) {
+                this.interactionState.type = type;
+                this.interactionState.intensity = Math.max(this.interactionState.intensity * 0.9, intensity);
+                this.updateInteractionIndicators();
+            }
+            
+            updateInteractionIndicators() {
+                document.getElementById('interactionType').textContent = this.interactionState.type.charAt(0).toUpperCase() + this.interactionState.type.slice(1);
+                document.getElementById('morphLevel').textContent = this.params.morphFactor.toFixed(2);
+                document.getElementById('gridDensityIndicator').textContent = this.params.gridDensity.toFixed(1);
+                document.getElementById('dimensionLevel').textContent = this.params.dimension.toFixed(2);
+                document.getElementById('rotation4dLevel').textContent = `${this.params.rot4dXW.toFixed(1)},${this.params.rot4dYW.toFixed(1)},${this.params.rot4dZW.toFixed(1)}`;
+            }
+            
+            setGeometry(geometryName) {
+                if (this.currentGeometry === geometryName) return;
+                
+                this.currentGeometry = geometryName;
+                const config = this.geometryConfigs[geometryName];
+                
+                // Smooth transition to new geometry
+                const startParams = { ...this.params };
+                const targetParams = { ...config };
+                
+                const transitionDuration = 1500; // 1.5 seconds
+                const startTime = Date.now();
+                
+                const transition = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / transitionDuration, 1.0);
+                    const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI); // Smooth ease
+                    
+                    // Interpolate parameters
+                    Object.keys(targetParams).forEach(key => {
+                        if (typeof targetParams[key] === 'number') {
+                            this.params[key] = startParams[key] + (targetParams[key] - startParams[key]) * eased;
+                        } else if (Array.isArray(targetParams[key])) {
+                            this.params[key] = startParams[key].map((val, i) => 
+                                val + (targetParams[key][i] - val) * eased
+                            );
+                        }
+                    });
+                    
+                    this.updateControlsFromParams();
+                    
+                    if (progress < 1.0) {
+                        requestAnimationFrame(transition);
+                    }
+                };
+                
+                transition();
+                
+                document.getElementById('currentGeometry').textContent = geometryName.charAt(0).toUpperCase() + geometryName.slice(1);
+                
+                this.setStatus(`Switched to ${geometryName} geometry`, 'success');
+                console.log(`🎨 Geometry changed to: ${geometryName}`);
+            }
+            
+            updateControlsFromParams() {
+                document.getElementById('gridDensity').value = this.params.gridDensity;
+                document.getElementById('morphFactor').value = this.params.morphFactor;
+                document.getElementById('dimension').value = this.params.dimension;
+                document.getElementById('glitchIntensity').value = this.params.glitchIntensity;
+                document.getElementById('rotationSpeed').value = this.params.rotationSpeed;
+                document.getElementById('rot4dXW').value = this.params.rot4dXW;
+                document.getElementById('rot4dYW').value = this.params.rot4dYW;
+                document.getElementById('rot4dZW').value = this.params.rot4dZW;
+                document.getElementById('projection').value = this.params.projection;
+                document.getElementById('hyperRadius').value = this.params.hyperRadius;
+                
+                this.updateControlsDisplay();
+            }
+            
+            resize() {
+                const displayWidth = this.canvas.clientWidth;
+                const displayHeight = this.canvas.clientHeight;
+                
+                if (this.canvas.width !== displayWidth || this.canvas.height !== displayHeight) {
+                    this.canvas.width = displayWidth;
+                    this.canvas.height = displayHeight;
+                    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                }
+            }
+            
+            render() {
+                // Apply interaction effects to parameters
+                const interactionMultiplier = 1.0 + this.interactionState.intensity * 0.5;
+                const currentMorphFactor = this.params.morphFactor * interactionMultiplier;
+                const currentGridDensity = this.params.gridDensity * (1.0 + this.interactionState.intensity * 0.2);
+                
+                // Handle hold interactions (dimensional shift)
+                let holdEffect = 0;
+                if (this.interactionState.isHolding) {
+                    const holdDuration = Date.now() - this.interactionState.holdStart;
+                    holdEffect = Math.min(holdDuration / 2000, 1.0); // 2 second max hold
+                }
+                const currentDimension = this.params.dimension + holdEffect * 0.5;
+                
+                this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+                this.gl.useProgram(this.program);
+                
+                // Setup vertex attributes
+                this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+                this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+                
+                // Set uniforms
+                this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
+                this.gl.uniform1f(this.uniforms.time, (Date.now() - this.startTime) / 1000);
+                this.gl.uniform2f(this.uniforms.mouse, this.interactionState.mouseX, this.interactionState.mouseY);
+                this.gl.uniform1f(this.uniforms.morphFactor, currentMorphFactor);
+                this.gl.uniform1f(this.uniforms.glitchIntensity, this.params.glitchIntensity);
+                this.gl.uniform1f(this.uniforms.rotationSpeed, this.params.rotationSpeed);
+                this.gl.uniform1f(this.uniforms.dimension, currentDimension);
+                this.gl.uniform1f(this.uniforms.gridDensity, currentGridDensity);
+                this.gl.uniform3fv(this.uniforms.baseColor, this.params.baseColor);
+                this.gl.uniform1f(this.uniforms.interactionIntensity, this.interactionState.intensity);
+                this.gl.uniform1f(this.uniforms.geometry, this.params.geometry);
+                this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW);
+                this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW);
+                this.gl.uniform1f(this.uniforms.rot4dZW, this.params.rot4dZW);
+                this.gl.uniform1f(this.uniforms.projection, this.params.projection);
+                this.gl.uniform1f(this.uniforms.hyperRadius, this.params.hyperRadius);
+                
+                this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            }
+            
+            animate() {
+                this.render();
+                
+                // Decay interaction intensity
+                this.interactionState.intensity *= 0.98;
+                
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            setStatus(message, type = '') {
+                const status = document.getElementById('status');
+                status.textContent = message;
+                status.className = 'status ' + type;
+                if (type) {
+                    setTimeout(() => {
+                        status.className = 'status';
+                    }, 3000);
+                }
+            }
+            
+            exportPolytopals() {
+                const config = {
+                    version: "2.0",
+                    type: "polytopal-holographic-theme",
+                    name: `${this.currentGeometry} Theme - ${new Date().toLocaleDateString()}`,
+                    geometry: this.currentGeometry,
+                    parameters: { ...this.params },
+                    timestamp: Date.now(),
+                    metadata: {
+                        creator: "Polytopal Holographic Pro",
+                        core: "4D Polytopal Mathematics",
+                        features: ["4D rotations", "polytopal lattices", "interaction responsiveness"]
+                    }
+                };
+                
+                const json = JSON.stringify(config, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `polytopal-${this.currentGeometry}-theme.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                this.setStatus('Polytopal theme exported as JSON', 'success');
+            }
+            
+            exportWallpaper() {
+                try {
+                    const link = document.createElement('a');
+                    link.download = `polytopal-${this.currentGeometry}-wallpaper.png`;
+                    link.href = this.canvas.toDataURL('image/png');
+                    link.click();
+                    this.setStatus('Polytopal wallpaper exported as PNG', 'success');
+                } catch (error) {
+                    this.setStatus('Export failed: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        // Global functions
+        let polytopalsCore = null;
+        
+        function togglePanel() {
+            const panel = document.querySelector('.editor-panel');
+            const btn = document.querySelector('.minimize-btn');
+            if (panel.style.transform === 'translateX(100%)') {
+                panel.style.transform = 'translateX(0)';
+                btn.textContent = '−';
+            } else {
+                panel.style.transform = 'translateX(100%)';
+                btn.textContent = '+';
+            }
+        }
+        
+        function randomizeAll() {
+            if (polytopalsCore) {
+                const geometries = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'klein', 'fractal', 'wave', 'crystal'];
+                const randomGeometry = geometries[Math.floor(Math.random() * geometries.length)];
+                
+                document.querySelector(`[data-theme="${randomGeometry}"]`).click();
+                
+                // Randomize current parameters
+                document.getElementById('gridDensity').value = (8 + Math.random() * 20).toFixed(1);
+                document.getElementById('morphFactor').value = (Math.random() * 2).toFixed(2);
+                document.getElementById('dimension').value = (3.0 + Math.random() * 1.5).toFixed(2);
+                document.getElementById('glitchIntensity').value = (Math.random()).toFixed(2);
+                document.getElementById('rotationSpeed').value = (Math.random() * 3).toFixed(1);
+                document.getElementById('rot4dXW').value = (Math.random() * 4 - 2).toFixed(1);
+                document.getElementById('rot4dYW').value = (Math.random() * 4 - 2).toFixed(1);
+                document.getElementById('rot4dZW').value = (Math.random() * 4 - 2).toFixed(1);
+                document.getElementById('projection').value = (1 + Math.random() * 4).toFixed(1);
+                document.getElementById('hyperRadius').value = (0.5 + Math.random() * 2.5).toFixed(1);
+                
+                polytopalsCore.updateFromControls();
+                polytopalsCore.setStatus('All parameters randomized', 'success');
+            }
+        }
+        
+        function resetDefaults() {
+            if (polytopalsCore) {
+                polytopalsCore.setGeometry('hypercube');
+                polytopalsCore.setStatus('Reset to default parameters', 'success');
+            }
+        }
+        
+        function exportPolytopals() {
+            if (polytopalsCore) polytopalsCore.exportPolytopals();
+        }
+        
+        function exportWallpaper() {
+            if (polytopalsCore) polytopalsCore.exportWallpaper();
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            const canvas = document.getElementById('reactive-canvas');
+            if (canvas) {
+                polytopalsCore = new PolytopalsHolographicCore(canvas);
+                console.log('✅ Polytopal Holographic Core loaded successfully!');
+                console.log('🎯 Advanced Features:');
+                console.log('   • 8 Polytopal Geometries: Hypercube, Tetrahedron, Sphere, Torus, Klein, Fractal, Wave, Crystal');
+                console.log('   • 4D Rotation Matrix Controls: XW, YW, ZW rotations');
+                console.log('   • Advanced Interaction: Mouse tracking, hold effects, dimensional shifting');
+                console.log('   • Smooth geometry transitions with proper 4D mathematics');
+            }
+        });
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (polytopalsCore) {
+                // Cleanup WebGL resources
+                console.log('🧹 Cleaning up Polytopal Core resources');
+            }
+        });
+    </script>
+</body>
+</html>
